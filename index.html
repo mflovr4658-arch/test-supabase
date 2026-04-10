@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Test Supabase</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    li { margin: 5px 0; }
+    button { margin-left: 10px; }
+  </style>
 </head>
 <body>
 
@@ -12,20 +17,26 @@
 <input type="text" id="name" placeholder="ชื่อ">
 <button onclick="addUser()">เพิ่ม</button>
 
+<p id="status"></p>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
+  // 🔑 ใส่ค่าของคุณ
   const supabaseUrl = "https://wohizodunukbmxokfttj.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvaGl6b2R1bnVrYm14b2tmdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTY1MTMsImV4cCI6MjA5MTMzMjUxM30.j33iAOsC0wl-Hn8180CoF6d-1RPBgv9AuiKuXBNE8s4";
+  const supabaseKey = "YOUR_ANON_KEY"; 
 
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+  // 📥 โหลดข้อมูล
   async function loadUsers() {
     const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select('*')
+      .order('id', { ascending: false });
 
     if (error) {
-      console.log("ERROR:", error);
+      console.log("LOAD ERROR:", error);
+      document.getElementById("status").innerText = "❌ โหลดข้อมูลไม่ได้";
       return;
     }
 
@@ -35,12 +46,26 @@
     data.forEach(user => {
       const li = document.createElement("li");
       li.textContent = user.name;
+
+      // ปุ่มลบ
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "ลบ";
+      delBtn.onclick = () => deleteUser(user.id);
+
+      li.appendChild(delBtn);
       list.appendChild(li);
     });
   }
 
+  // ➕ เพิ่มข้อมูล
   async function addUser() {
-    const name = document.getElementById("name").value;
+    const nameInput = document.getElementById("name");
+    const name = nameInput.value.trim();
+
+    if (!name) {
+      document.getElementById("status").innerText = "⚠️ กรุณากรอกชื่อ";
+      return;
+    }
 
     const { error } = await supabase
       .from('users')
@@ -48,11 +73,34 @@
 
     if (error) {
       console.log("INSERT ERROR:", error);
+      document.getElementById("status").innerText = "❌ เพิ่มข้อมูลไม่สำเร็จ";
+      return;
     }
+
+    document.getElementById("status").innerText = "✅ เพิ่มข้อมูลสำเร็จ";
+    nameInput.value = "";
 
     loadUsers();
   }
 
+  // ❌ ลบข้อมูล
+  async function deleteUser(id) {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.log("DELETE ERROR:", error);
+      document.getElementById("status").innerText = "❌ ลบไม่สำเร็จ";
+      return;
+    }
+
+    document.getElementById("status").innerText = "🗑️ ลบสำเร็จ";
+    loadUsers();
+  }
+
+  // 🚀 เริ่มโหลด
   loadUsers();
 </script>
 
