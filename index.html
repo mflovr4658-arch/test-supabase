@@ -15,7 +15,7 @@
 <ul id="user-list"></ul>
 
 <input type="text" id="name" placeholder="ชื่อ">
-<button onclick="addUser()">เพิ่ม</button>
+<button id="addBtn">เพิ่ม</button>
 
 <p id="status"></p>
 
@@ -23,13 +23,15 @@
 <script>
   // 🔑 ใส่ค่าของคุณ
   const supabaseUrl = "https://wohizodunukbmxokfttj.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvaGl6b2R1bnVrYm14b2tmdHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTY1MTMsImV4cCI6MjA5MTMzMjUxM30.j33iAOsC0wl-Hn8180CoF6d-1RPBgv9AuiKuXBNE8s4"; 
+  const supabaseKey = "YOUR_ANON_KEY";
 
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+  // ✅ ใช้แบบนี้กับ v2
+  const { createClient } = supabase;
+  const db = createClient(supabaseUrl, supabaseKey);
 
   // 📥 โหลดข้อมูล
   async function loadUsers() {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('users')
       .select('*')
       .order('id', { ascending: false });
@@ -47,10 +49,9 @@
       const li = document.createElement("li");
       li.textContent = user.name;
 
-      // ปุ่มลบ
       const delBtn = document.createElement("button");
       delBtn.textContent = "ลบ";
-      delBtn.onclick = () => deleteUser(user.id);
+      delBtn.addEventListener("click", () => deleteUser(user.id));
 
       li.appendChild(delBtn);
       list.appendChild(li);
@@ -67,7 +68,7 @@
       return;
     }
 
-    const { error } = await supabase
+    const { error } = await db
       .from('users')
       .insert([{ name }]);
 
@@ -85,7 +86,7 @@
 
   // ❌ ลบข้อมูล
   async function deleteUser(id) {
-    const { error } = await supabase
+    const { error } = await db
       .from('users')
       .delete()
       .eq('id', id);
@@ -99,6 +100,9 @@
     document.getElementById("status").innerText = "🗑️ ลบสำเร็จ";
     loadUsers();
   }
+
+  // 🔥 ผูกปุ่ม (แก้ปัญหา addUser not defined)
+  document.getElementById("addBtn").addEventListener("click", addUser);
 
   // 🚀 เริ่มโหลด
   loadUsers();
