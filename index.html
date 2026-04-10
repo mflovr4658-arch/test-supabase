@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Supabase</title>
+</head>
+<body>
+
+<h2>รายการผู้ใช้</h2>
+<ul id="user-list"></ul>
+
+<input type="text" id="name" placeholder="ชื่อ">
+<button onclick="addUser()">เพิ่ม</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  const supabaseUrl = "https://YOUR_PROJECT.supabase.co";
+  const supabaseKey = "YOUR_ANON_KEY";
+
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  async function loadUsers() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+
+    const list = document.getElementById("user-list");
+    list.innerHTML = "";
+
+    data.forEach(user => {
+      const li = document.createElement("li");
+      li.textContent = user.name;
+      list.appendChild(li);
+    });
+  }
+
+  async function addUser() {
+    const name = document.getElementById("name").value;
+
+    await supabase
+      .from('users')
+      .insert([{ name }]);
+
+    loadUsers();
+  }
+
+  loadUsers();
+</script>
+
+</body>
+</html>
