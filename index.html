@@ -24,6 +24,11 @@
       .from('users')
       .select('*');
 
+    if (error) {
+      console.log("ERROR:", error);
+      return;
+    }
+
     const list = document.getElementById("user-list");
     list.innerHTML = "";
 
@@ -37,9 +42,13 @@
   async function addUser() {
     const name = document.getElementById("name").value;
 
-    await supabase
+    const { error } = await supabase
       .from('users')
       .insert([{ name }]);
+
+    if (error) {
+      console.log("INSERT ERROR:", error);
+    }
 
     loadUsers();
   }
